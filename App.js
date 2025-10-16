@@ -1,29 +1,37 @@
 
-import React from "react";
-import Productos from "./src/views/Productos";
-import Clientes from "./src/views/Clientes";
-import Promedio from "./src/views/Promedio";
-import SumNum from "./src/views/SumNum";
-import Triangulos from "./src/views/Triangulos";
-import IMC from "./src/views/IMC";
-import Usuarios from "./src/views/Usuarios";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
+import "react-native-gesture-handler";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "./src/database/firebaseconfig.js";
+import Login from "./src/Components/Login.js";
+import AppNavigator from "./src/navigation/AppNavigator.js";
 
-import { View, StyleSheet,ScrollView } from "react-native";
+export default function App() {
+  const [usuario, setUsuario] = useState(null);
 
-export default function App( ) {
+  useEffect(() => {
+    // Escucha los cambios en la autenticación (login/logout)
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user);
+    });
+    return unsubscribe;
+  }, []);
 
-return (
-<>
-<ScrollView>
-<Productos />
-<Clientes />
-<Promedio />
-<SumNum />
-<Triangulos />
-<IMC />
-<Usuarios />
+  const cerrarSesion = async () => {
+    await signOut(auth);
+    setUsuario(null);
+  };
 
-</ScrollView>
-</>
-);
+  // Si no hay usuario autenticado, mostrar login
+  if (!usuario) {
+    return <Login onLoginSuccess={() => setUsuario(auth.currentUser)} />;
+  }
+
+  // Si hay usuario autenticado, mostrar productos
+  return (
+    <View style={{ flex: 1 }}>
+      <AppNavigator cerrarSesion={cerrarSesion} />
+    </View>
+  );
 }

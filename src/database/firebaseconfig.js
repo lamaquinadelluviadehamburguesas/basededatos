@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
@@ -21,9 +22,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Servicios
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-});
+let auth;
+if (Platform.OS === 'web') {
+  // En web usamos la implementación estándar
+  auth = getAuth(app);
+} else {
+  // En native usamos AsyncStorage para la persistencia
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+  });
+}
 
 const db = getFirestore(app);
 
