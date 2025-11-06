@@ -4,24 +4,23 @@ import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 const FormularioProductos = ({ nuevoProducto, manejoCambio, guardarProducto, actualizarProducto, modoEdicion }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>{modoEdicion ? "Editar Producto" : "Registro de Productos"}</Text>
-
+      <Text style={styles.titulo}>
+        {modoEdicion ? "Actualizar Producto" : "Registro de Producto"}
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Nombre del producto"
         value={nuevoProducto.nombre}
-        onChangeText={(text) => manejoCambio('nombre', text)}
+        onChangeText={(nombre) => manejoCambio("nombre", nombre)}
       />
-
       <TextInput
         style={styles.input}
         placeholder="Precio"
         value={nuevoProducto.precio}
-        onChangeText={(text) => manejoCambio('precio', text)}
+        onChangeText={(precio) => manejoCambio("precio", precio)}
         keyboardType="numeric"
       />
-
-      <Button
+      <Button 
         title={modoEdicion ? "Actualizar" : "Guardar"}
         onPress={modoEdicion ? actualizarProducto : guardarProducto}
       />
@@ -30,9 +29,9 @@ const FormularioProductos = ({ nuevoProducto, manejoCambio, guardarProducto, act
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 10 },
+  container: { padding: 20 },
   titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: "#ccc", marginBottom: 10, padding: 10 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10 },
 });
 
 export default FormularioProductos;

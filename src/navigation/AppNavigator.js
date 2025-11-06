@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import Productos from "../views/Productos";
+import Ciudades from "../views/Ciudades";
 import Clientes from "../views/Clientes";
 import Promedio from "../views/Promedio";
 import SumNum from "../views/SumNum";
@@ -19,6 +20,7 @@ export default function AppNavigator({ cerrarSesion }) {
         <Drawer.Screen name="Productos">
           {(props) => <Productos {...props} cerrarSesion={cerrarSesion} />}
         </Drawer.Screen>
+        <Drawer.Screen name="Ciudades" component={Ciudades} />
         <Drawer.Screen name="Clientes" component={Clientes} />
         <Drawer.Screen name="Promedio" component={Promedio} />
         <Drawer.Screen name="Suma de Números" component={SumNum} />

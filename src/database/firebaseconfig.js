@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
@@ -33,6 +33,8 @@ if (Platform.OS === 'web') {
   });
 }
 
-const db = getFirestore(app);
+// Firestore: activar long polling automático en web para evitar errores de canal Listen
+// (net::ERR_ABORTED) detrás de proxies/ad‑blockers o redes que bloquean WebSockets.
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 
 export { app, auth, db };

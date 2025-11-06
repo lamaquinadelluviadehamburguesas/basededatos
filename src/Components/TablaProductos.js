@@ -20,17 +20,18 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
           <View key={item.id} style={styles.fila}>
             <Text style={styles.celda}>{item.nombre}</Text>
             <Text style={styles.celda}>${item.precio}</Text>
-            <View style={styles.celdaAcciones}>
+
+            {/* Celda de acciones */}
+            <View style={[styles.celdaAcciones]}>
+
               <TouchableOpacity
-                style={styles.botonEditar}
+                style={styles.botonActualizar}
                 onPress={() => editarProducto(item)}
               >
-                <Text style={styles.textoBotonEditar}>🖋️</Text>
+                <Text>✏️</Text>
               </TouchableOpacity>
-              <BotonEliminarProducto
-                id={item.id}
-                eliminarProducto={eliminarProducto}
-              />
+
+              <BotonEliminarProducto id={item.id} eliminarProducto={eliminarProducto} />
             </View>
           </View>
         ))}
@@ -40,16 +41,16 @@ const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { 
+    flex: 1, 
     padding: 20,
-    alignSelf: "stretch",
+    alignSelf: "stretch"
   },
   titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
   fila: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderColor: "#CCC",
+    borderColor: "#ccc",
     paddingVertical: 6,
     alignItems: "center",
   },
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   },
   celdaAcciones: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "row", 
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
@@ -73,17 +74,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     textAlign: "center",
   },
-  botonEditar: {
-    backgroundColor: "#7c787886",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  textoBotonEditar: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  botonActualizar: {
+    padding: 4,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    backgroundColor: "#f3f3f7",
+  }
 });
 
 export default TablaProductos;

@@ -28,7 +28,7 @@ export default function App() {
     return <Login onLoginSuccess={() => setUsuario(auth.currentUser)} />;
   }
 
-  // Si hay usuario autenticado, mostrar productos
+  // Si hay usuario autenticado, mostrar navegación completa
   return (
     <View style={{ flex: 1 }}>
       <AppNavigator cerrarSesion={cerrarSesion} />

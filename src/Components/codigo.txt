@@ -1,0 +1,386 @@
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, Button } from "react-native";
+import { db } from "../database/firebaseconfig.js";
+import { collection, getDocs, doc, deleteDoc, addDoc, updateDoc } from "firebase/firestore";
+import FormularioProductos from "../components/FormularioProductos";
+import TablaProductos from "../components/TablaProductos.js";
+
+const Productos = ({cerrarSesion}) => {
+
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [productoId, setProductoId] = useState(null);
+
+  const [productos, setProductos] = useState([]);
+
+  const [nuevoProducto, setNuevoProducto] = useState({
+    nombre: "",
+    precio: "",
+  });
+
+  const manejoCambio = (nombre, valor) => {
+    setNuevoProducto((prev) => ({
+      ...prev,
+      [nombre]: valor,
+    }));
+  };
+
+  const guardarProducto = async () => {
+    try {
+      if (nuevoProducto.nombre && nuevoProducto.precio) {
+        await addDoc(collection(db, "productos"), {
+          nombre: nuevoProducto.nombre,
+          precio: parseFloat(nuevoProducto.precio),
+        });
+        cargarDatos(); // Recargar lista
+        setNuevoProducto({ nombre: "", precio: "" });
+      } else {
+        alert("Por favor, complete todos los campos.");
+      }
+    } catch (error) {
+      console.error("Error al registrar producto:", error);
+    }
+  };
+
+  const actualizarProducto = async () => {
+    try {
+      if (nuevoProducto.nombre && nuevoProducto.precio) {
+        await updateDoc(doc(db, "productos", productoId), {
+          nombre: nuevoProducto.nombre,
+          precio: parseFloat(nuevoProducto.precio),
+        });
+        setNuevoProducto({ nombre: "", precio: "" });
+        setModoEdicion(false); // Volver al modo registro
+        setProductoId(null);
+        cargarDatos(); // Recargar lista
+      } else {
+        alert("Por favor, complete todos los campos.");
+      }
+    } catch (error) {
+      console.error("Error al actualizar producto:", error);
+    }
+  };
+
+  const cargarDatos = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "productos"));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProductos(data);
+    } catch (error) {
+      console.error("Error al obtener documentos:", error);
+    }
+  };
+
+  const eliminarProducto = async (id) => {
+    try {
+      await deleteDoc(doc(db, "productos", id));
+      cargarDatos(); // Recargar lista
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
+  };
+
+  const editarProducto = (producto) => {
+    setNuevoProducto({
+      nombre: producto.nombre,
+      precio: producto.precio.toString(),
+    });
+    setProductoId(producto.id);
+    setModoEdicion(true);
+  };
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+
+      <Button title="Cerrar Sesión" onPress={cerrarSesion} />
+
+      <FormularioProductos
+        nuevoProducto={nuevoProducto}
+        manejoCambio={manejoCambio}
+        guardarProducto={guardarProducto}
+        actualizarProducto={actualizarProducto}
+        modoEdicion={modoEdicion}
+      />
+      
+      <TablaProductos 
+        productos={productos}
+        editarProducto={editarProducto} 
+        eliminarProducto={eliminarProducto}
+      />
+      
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20 },
+});
+
+export default Productos;
+
+
+
+
+import React from "react";
+import { View, TextInput, Button, StyleSheet, Text } from "react-native";
+
+const FormularioProductos = ({ nuevoProducto, manejoCambio, guardarProducto, actualizarProducto, modoEdicion }) => {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>
+        {modoEdicion ? "Actualizar Producto" : "Registro de Producto"}
+      </Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre del producto"
+        value={nuevoProducto.nombre}
+        onChangeText={(nombre) => manejoCambio("nombre", nombre)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Precio"
+        value={nuevoProducto.precio}
+        onChangeText={(precio) => manejoCambio("precio", precio)}
+        keyboardType="numeric"
+      />
+      <Button 
+        title={modoEdicion ? "Actualizar" : "Guardar"}
+        onPress={modoEdicion ? actualizarProducto : guardarProducto}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { padding: 20 },
+  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10 },
+});
+
+export default FormularioProductos;
+
+
+// components/BotonEliminarProducto.js
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
+
+const BotonEliminarProducto = ({ id, eliminarProducto }) => {
+  
+  const [visible, setVisible] = useState(false);
+
+  const confirmarEliminar = () => {
+    setVisible(false);
+    eliminarProducto(id);
+  };
+
+  return (
+    <View>
+      {/* Botón pequeño */}
+      <TouchableOpacity
+        style={styles.boton}
+        onPress={() => setVisible(true)}
+      >
+        <Text style={styles.textoBoton}>🗑️</Text>
+      </TouchableOpacity>
+
+      {/* Modal de confirmación */}
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <Text style={styles.texto}>¿Eliminar este producto?</Text>
+
+            <View style={styles.fila}>
+              <TouchableOpacity
+                style={[styles.botonAccion, styles.cancelar]}
+                onPress={() => setVisible(false)}
+              >
+                <Text style={styles.textoAccion}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.botonAccion, styles.confirmar]}
+                onPress={confirmarEliminar}
+              >
+                <Text style={styles.textoAccion}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  boton: {
+    padding: 4,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    backgroundColor: "#f3f3f7ff",
+  },
+  textoBoton: { color: "white", fontSize: 14 },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modal: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  texto: { fontSize: 18, marginBottom: 20 },
+  fila: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
+  botonAccion: {
+    flex: 1,
+    marginHorizontal: 5,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  cancelar: { backgroundColor: "#ccc" },
+  confirmar: { backgroundColor: "#e63946" },
+  textoAccion: { color: "white", fontWeight: "bold" },
+});
+
+export default BotonEliminarProducto;
+
+
+import React from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import BotonEliminarProducto from "./BotonEliminarProducto.js";
+
+const TablaProductos = ({ productos, eliminarProducto, editarProducto }) => {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Tabla de Productos</Text>
+
+      {/* Encabezado de la tabla */}
+      <View style={[styles.fila, styles.encabezado]}>
+        <Text style={[styles.celda, styles.textoEncabezado]}>Nombre</Text>
+        <Text style={[styles.celda, styles.textoEncabezado]}>Precio</Text>
+        <Text style={[styles.celda, styles.textoEncabezado]}>Acciones</Text>
+      </View>
+
+      {/* Contenido de la tabla */}
+      <ScrollView>
+        {productos.map((item) => (
+          <View key={item.id} style={styles.fila}>
+            <Text style={styles.celda}>{item.nombre}</Text>
+            <Text style={styles.celda}>${item.precio}</Text>
+
+            {/* Celda de acciones */}
+            <View style={[styles.celdaAcciones]}>
+
+              <TouchableOpacity
+                style={styles.botonActualizar}
+                onPress={() => editarProducto(item)}
+              >
+                <Text>✏️</Text>
+              </TouchableOpacity>
+
+              <BotonEliminarProducto id={item.id} eliminarProducto={eliminarProducto} />
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    padding: 20,
+    alignSelf: "stretch"
+  },
+  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
+  fila: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  encabezado: {
+    backgroundColor: "#f0f0f0",
+  },
+  celda: {
+    flex: 1,
+    fontSize: 16,
+    textAlign: "center",
+  },
+  celdaAcciones: {
+    flex: 1,
+    flexDirection: "row", 
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  textoEncabezado: {
+    fontWeight: "bold",
+    fontSize: 17,
+    textAlign: "center",
+  },
+  botonActualizar: {
+    padding: 4,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    backgroundColor: "#f3f3f7",
+  }
+});
+
+export default TablaProductos;
+
+import React, { useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { View, Button } from "react-native";
+import { auth } from "./src/database/firebaseconfig";
+import Login from "./src/views/Login";
+import Productos from "./src/views/Productos";
+
+export default function App() {
+  const [usuario, setUsuario] = useState(null);
+
+  useEffect(() => {
+    // Escucha los cambios en la autenticación (login/logout)
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUsuario(user);
+    });
+    return unsubscribe;
+  }, []);
+
+  const cerrarSesion = async () => {
+    await signOut(auth);
+  };
+
+  if (!usuario) {
+    // Si no hay usuario autenticado, mostrar login
+    return <Login onLoginSuccess={() => setUsuario(auth.currentUser)} />;
+  }
+
+  // Si hay usuario autenticado, mostrar productos
+  return (
+    <View style={{ flex: 1 }}>
+      <Productos cerrarSesion={cerrarSesion}/>
+    </View>
+  );
+}

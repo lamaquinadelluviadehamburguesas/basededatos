@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isValidString(field) {
+      return field is string && field.size() > 0;
+    }
+    function isNonNegativeNumber(field) {
+      return field is number && field >= 0;
+    }
+
+    // Por defecto: negar todo y permitir solo lo especificado abajo
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Productos: nombre (string), precio (number >= 0)
+    match /productos/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['nombre', 'precio'])
+        && request.resource.data.keys().hasAll(['nombre', 'precio'])
+        && isValidString(request.resource.data.nombre)
+        && isNonNegativeNumber(request.resource.data.precio);
+      allow delete: if isSignedIn();
+    }
+
+    // Usuarios: nombre (string), correo (string), telefono (number >= 0), edad (number entre 0 y 120)
+    match /usuarios/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['nombre','correo','telefono','edad'])
+        && request.resource.data.keys().hasAll(['nombre','correo','telefono','edad'])
+        && isValidString(request.resource.data.nombre)
+        && isValidString(request.resource.data.correo)
+        && isNonNegativeNumber(request.resource.data.telefono)
+        && (request.resource.data.edad is number && request.resource.data.edad >= 0 && request.resource.data.edad <= 120);
+      allow delete: if isSignedIn();
+    }
+
+    // Clientes: nombre (string), apellido (string), cedula (string)
+    match /clientes/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['nombre','apellido','cedula'])
+        && request.resource.data.keys().hasAll(['nombre','apellido','cedula'])
+        && isValidString(request.resource.data.nombre)
+        && isValidString(request.resource.data.apellido)
+        && isValidString(request.resource.data.cedula);
+      allow delete: if isSignedIn();
+    }
+
+    // Ciudades (colección usada en la app en singular: "ciudad"): nombre, poblacion (>=0), pais, region
+    match /ciudad/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['nombre','poblacion','pais','region'])
+        && request.resource.data.keys().hasAll(['nombre','poblacion','pais','region'])
+        && isValidString(request.resource.data.nombre)
+        && isNonNegativeNumber(request.resource.data.poblacion)
+        && isValidString(request.resource.data.pais)
+        && isValidString(request.resource.data.region);
+      allow delete: if isSignedIn();
+    }
+
+    // IMC, Triangulos, Sumas, Edades: permitir a usuarios autenticados (sin validación de esquema específica)
+    match /imcs/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /triangulos/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /sumas/{id} {
+      allow read, write: if isSignedIn();
+    }
+    match /edades/{id} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
+
+// Cómo desplegar estas reglas:
+// 1) En la consola de Firebase > Firestore Database > Rules, pega este contenido y publica.
+// 2) O usa CLI: firebase deploy --only firestore:rules
+//    (requiere tener configurado firebase.json y el proyecto inicializado con "firebase init").

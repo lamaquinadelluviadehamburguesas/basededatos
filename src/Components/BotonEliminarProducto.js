@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
 
 const BotonEliminarProducto = ({ id, eliminarProducto }) => {
+  
   const [visible, setVisible] = useState(false);
 
   const confirmarEliminar = () => {
@@ -28,7 +29,7 @@ const BotonEliminarProducto = ({ id, eliminarProducto }) => {
       >
         <View style={styles.overlay}>
           <View style={styles.modal}>
-            <Text style={styles.texto}>¿Desea eliminar este producto?</Text>
+            <Text style={styles.texto}>¿Eliminar este producto?</Text>
 
             <View style={styles.fila}>
               <TouchableOpacity
@@ -51,7 +52,6 @@ const BotonEliminarProducto = ({ id, eliminarProducto }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   boton: {

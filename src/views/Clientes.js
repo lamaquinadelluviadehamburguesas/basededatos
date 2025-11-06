@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { db } from "../database/firebaseconfig.js";
-import { collection, getDocs, deleteDoc, doc, addDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, addDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import FormularioClientes from "../Components/FormularioClientes.js";
 import TablaClientes from "../Components/TablaClientes.js"; // Corregido el nombre del archivo
 
@@ -89,7 +89,23 @@ const Clientes = () => {
   };
 
   useEffect(() => {
+    // Suscripción en tiempo real para la colección "clientes"
+    const unsubscribe = onSnapshot(
+      collection(db, "clientes"),
+      (querySnapshot) => {
+        const data = querySnapshot.docs.map((docu) => ({ id: docu.id, ...docu.data() }));
+        setClientes(data);
+      },
+      (error) => {
+        console.error("Error en tiempo real de clientes:", error);
+      }
+    );
+
+    // Carga inicial de respaldo por si la suscripción falla
     cargarDatos();
+
+    // Limpieza al desmontar
+    return unsubscribe;
   }, []);
 
   return (
